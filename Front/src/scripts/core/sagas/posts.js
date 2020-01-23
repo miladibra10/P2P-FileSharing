@@ -3,13 +3,13 @@ import { all, call, put, takeLatest, take } from 'redux-saga/effects';
 import { request } from '../api/api';
 import {ActionTypes } from '../actions/actionTypes';
 
-var sinceTime = (new Date(Date.now())).getTime()
+var sinceTime = (new Date(Date.now())).getTime();
 export function* getAllPosts({ payload }) {
   try {
     /* istanbul ignore next */
-    console.log('getting all posts')
-    const timeout = 10
-    let optimalSince= ''
+    console.log('getting all posts');
+    const timeout = 10;
+    let optimalSince= '';
     if(sinceTime){
       optimalSince = "&since_time=" + sinceTime;
     }
@@ -17,8 +17,7 @@ export function* getAllPosts({ payload }) {
     const response = yield call(request, url, {
         payload,
         method: 'GET',
-    })
-    console.log(response.data)
+    });
     if(response.data && response.data.events && response.data.events.length > 0){
       console.log('success');
       

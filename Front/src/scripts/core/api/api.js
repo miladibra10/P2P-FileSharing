@@ -1,6 +1,7 @@
 
 export function request(url, options) {
     // console.log(options)
+    console.log((url, options))
     const request = new Request(url, {
         method: options.method,
         headers: {

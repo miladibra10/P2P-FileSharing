@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "antd": "^3.26.7",
+    "firebase": "^7.7.0",
     "immutability-helper": "^3.0.1",
     "jss-rtl": "^0.2.3",
     "node-sass": "^4.12.0",
@@ -16,7 +17,8 @@
     "redux": "^4.0.4",
     "redux-logger": "^3.0.6",
     "redux-persist": "^5.10.0",
-    "redux-saga": "^1.0.5"
+    "redux-saga": "^1.0.5",
+    "rsvp": "^4.8.5"
   },
   "scripts": {
     "start": "react-scripts start",
