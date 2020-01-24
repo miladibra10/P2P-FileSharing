@@ -70,7 +70,7 @@ export function createOffer(peerRef) {
             data : offer
         });
         peerConnection.setLocalDescription(offer);
-        peerRef.child('offer1').set({
+        peerRef.child('offer').set({
             event : "offer",
             sdp : offer.sdp,
         }, (e) => {console.log(e)})
@@ -109,8 +109,12 @@ function handleCandidate(candidate) {
     peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
 };
 
-function handleAnswer(answer) {
-    peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+export function handleAnswer(answer) {
+    var answerObj = {
+        sdp: answer.sdp,
+        type: "answer"
+    }
+    peerConnection.setRemoteDescription(new RTCSessionDescription(answerObj));
     console.log("connection established successfully!!");
 };
 

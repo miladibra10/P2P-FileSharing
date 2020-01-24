@@ -2,7 +2,7 @@ import React, {useEffect, useState, useRef} from 'react';
 import {Input, Icon, Tooltip, Col, Upload, message, Button, Avatar, Divider, Row, Descriptions} from 'antd';
 import uuid from 'uuid/v1'
 import {databaseRef} from "../../../core/webrtc/firebase";
-import {createOffer, onopen, handleOffer} from "../../../core/webrtc/web-rtc";
+import {createOffer, onopen, handleOffer, handleAnswer} from "../../../core/webrtc/web-rtc";
 
 const {Search} = Input;
 
@@ -41,7 +41,9 @@ const Home = () => {
 
     ref.current = {
         storedUser,
-        storedUserRoomRef
+        storedUserRoomRef,
+        peerRef,
+        peer
     }
     useEffect(() => {
         return () => {
@@ -89,7 +91,8 @@ const Home = () => {
         userRoomRef.set(user, (e) => console.log(e));
         roomChange(roomRef);
 
-        // onOfferReceived(userRoomRef, peerRef);
+        onOfferReceived(userRoomRef, peerRef);
+        onAnswerRecieved()
 
         setStoredUserRoomRef(userRoomRef)
     };
@@ -112,9 +115,10 @@ const Home = () => {
                     Object.keys(users).map((username) => {
                         console.log(username)
                         if (username !== enteredUsername) {
+                            console.log("ANTAAAR")
                             const newPeer = users[username]
                             setPeer(newPeer)
-                            // setPeerRef(roomRef.child(`users/${username}`))
+                            setPeerRef(roomRef.child(`users/${username}`))
                             setPeerCreated(true)
                         }
                     })
@@ -126,16 +130,18 @@ const Home = () => {
         console.log('user room ref', userRoomRef);
         console.log("peer ref offer on offer", peerRef)
         console.log('track offer receive');
-        // userRoomRef.on('child_added', (data) => {
-        //     // if data.val
-        //     console.log('offer received: ', data.val());
-        //     if (data.val().event === "offer"){
-        //         console.log("giving answer")
-        //         console.log(data.val())
-        //         handleOffer(data.val(),peerRef)
-        //     }
-        //
-        // })
+        databaseRef.child(`/offers/${enteredUsername}`).on('child_added', (data) => {
+            console.log("NEEEEEW", data.val())
+            const reef = databaseRef.child(`/answers/${data.key}/${enteredUsername}`)
+            handleOffer(data.val().offer, reef)
+        })
+    }
+    const onAnswerRecieved = () => {
+        databaseRef.child(`/answers/${enteredUsername}`).on('child_added', (data) => {
+            console.log("DATAAAAA", data)
+            console.log("DATAAAAA1", data.val())
+            handleAnswer(data.val().answer)
+        })
     }
     const searchFun = (value) => {
         const roomRef = databaseRef.child(`/rooms/${value}`);
@@ -181,7 +187,8 @@ const Home = () => {
     };
     const handleAvatarClick = () => {
         console.log('cliiiiiiicke', peerRef)
-        createOffer(peerRef);
+        const offerRef = databaseRef.child(`/offers/${peer["username"]}/${enteredUsername}`)
+        createOffer(offerRef);
     };
     console.log(userCreated)
     return (
