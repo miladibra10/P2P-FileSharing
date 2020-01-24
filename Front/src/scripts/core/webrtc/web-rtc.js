@@ -49,6 +49,7 @@ function initialize() {
         reliable : true
     });
 
+    console.log('reeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeead',dataChannel.readyState)
     dataChannel.onerror = function(error) {
         console.log("Error occured on datachannel:", error);
     };
@@ -118,7 +119,9 @@ export function handleAnswer(answer) {
     console.log("connection established successfully!!");
 };
 
-function sendMessage() {
-    dataChannel.send(input.value);
-    input.value = "";
+export function sendMessage(data) {
+    console.log(data, dataChannel.readyState)
+    if(dataChannel.readyState === 'open'){
+        dataChannel.send(data);
+    }
 }

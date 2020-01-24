@@ -2,7 +2,7 @@ import React, {useEffect, useState, useRef} from 'react';
 import {Input, Icon, Tooltip, Col, Upload, message, Button, Avatar, Divider, Row, Descriptions} from 'antd';
 import uuid from 'uuid/v1'
 import {databaseRef} from "../../../core/webrtc/firebase";
-import {createOffer, onopen, handleOffer, handleAnswer} from "../../../core/webrtc/web-rtc";
+import {createOffer, onopen, handleOffer, handleAnswer, sendMessage} from "../../../core/webrtc/web-rtc";
 
 const {Search} = Input;
 
@@ -260,6 +260,13 @@ const Home = () => {
                 )}
 
             </Col>
+            <Button
+                onClick={() => {
+                    sendMessage('hello from the other side');
+                }}
+            >
+                Send Some Shit
+            </Button>
         </div>
     )
 };
