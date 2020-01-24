@@ -5,36 +5,44 @@ const {
     USER_ADDED_ROOM,
     USER_REMOVED_ROOM,
     DISCONNECTED_ROOM,
-    USER_CHANGED
+    USER_CHANGED,
+    SEARCH_USER_REQUEST,
 } = ActionTypes;
 
-export  function connectedRoom () {
+export function connectedRoom () {
     return {
         type: CONNECTED_ROOM,
         payload: {}
     }
 }
-export  function userAddedRoom () {
+export function userAddedRoom () {
     return {
         type: USER_ADDED_ROOM,
         payload: {}
     }
 }
-export  function userRemovedRoom () {
+export function userRemovedRoom () {
     return {
         type: USER_REMOVED_ROOM,
         payload: {}
     }
 }
-export  function disconnectedRoom () {
+export function disconnectedRoom () {
     return {
         type: DISCONNECTED_ROOM,
         payload: {}
     }
 }
-export  function userChanged () {
+export function userChanged () {
     return {
         type: USER_CHANGED,
         payload: {}
+    }
+}
+
+export function searchUser(keyword) {
+    return {
+        type: SEARCH_USER_REQUEST,
+        payload: { keyword }
     }
 }

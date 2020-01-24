@@ -9,5 +9,4 @@ const config = {
 }
 firebase.initializeApp(config);
 
-const databaseRef = firebase.database().ref();
-export const roomsRef = databaseRef.child("rooms")
+export const databaseRef = firebase.database().ref();

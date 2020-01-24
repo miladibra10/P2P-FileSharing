@@ -1,7 +1,6 @@
 /* jshint -W030 */
 import { Promise } from 'rsvp';
 import config from '../../environment';
-import {roomsRef} from "./firebase";
 
 import FileSystem from './file';
 import {util} from './peer';
@@ -41,32 +40,14 @@ export function initialize() {
                 method: 'GET',
             });
             xhr.then((data) => {
-                console.log(data, roomsRef);
-                roomsRef.set({
-                    username: 'name',
-                    email: 'email',
-                    profile_picture : 'imageUrl'
-                })
-                roomsRef.once('value').then(function(snapshot) {
-                    var username = (snapshot.val() && snapshot.val().username) || 'Anonymous';
-                    console.log((username))
-                    // ...
-                })
-                // const ref = new window.Firebase(config.FIREBASE_URL);
-                // // eslint-disable-next-line no-param-reassign
-                // application.ref = ref;
-                // // eslint-disable-next-line no-param-reassign
-                // application.userId = data.id;
-                // // eslint-disable-next-line no-param-reassign
-                // application.publicIp = data.public_ip;
+                sessionStorage.setItem('ip', data.data.ip)
+                // roomsRef.set({
                 //
-                // ref.authWithCustomToken(data.token, (error) => {
-                //     if (error) {
-                //         reject(error);
-                //     } else {
-                //         resolve();
-                //     }
-                // });
+                // }   )
+                // roomsRef.once('value').then(function(snapshot) {
+                //     var username = (snapshot.val() && snapshot.val().username) || 'Anonymous';
+                //     // ...
+                // })
             });
             resolve();
         });

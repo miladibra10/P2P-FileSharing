@@ -10,14 +10,16 @@ class App extends React.Component {
   render() {
     const { match } = this.props;
     initialize.initialize();
+
     return (
       <div>
         <Switch>
-        <Route
-          exact
-          path="/"
-          component={() => <Home />}
-          />
+            <Route
+                exact
+                path="/"
+                component={() => <Home/>}
+            />
+
         </Switch>
       </div>
     );
