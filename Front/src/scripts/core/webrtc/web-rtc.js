@@ -1,3 +1,4 @@
+import {databaseRef} from "./firebase";
 
 
 export function onopen() {
@@ -12,7 +13,7 @@ function send(message) {
 var peerConnection;
 var dataChannel;
 var input = document.getElementById("messageInput");
-
+var candidates = [];
 function initialize() {
     const configuration = {
         iceServers: [
@@ -23,7 +24,7 @@ function initialize() {
                 ],
             },
         ],
-        iceCandidatePoolSize: 10,
+        iceCandidatePoolSize: 1,
     };
 
     peerConnection = new RTCPeerConnection(configuration, {
@@ -31,16 +32,15 @@ function initialize() {
             RtpDataChannels : true
         } ]
     });
-    console.log('initialize called')
-    // Setup ice handling
 
     peerConnection.onicecandidate = function(event) {
-        console.log('on ice candidate called')
+        console.log('new candidate is ready');
         if (event.candidate) {
             send({
                 event : "candidate",
                 data : event.candidate
             });
+            candidates.push(event.candidate)
         }
     };
 
@@ -49,7 +49,6 @@ function initialize() {
         reliable : true
     });
 
-    console.log('reeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeead',dataChannel.readyState)
     dataChannel.onerror = function(error) {
         console.log("Error occured on datachannel:", error);
     };
@@ -74,19 +73,18 @@ export function createOffer(peerRef) {
         peerRef.child('offer').set({
             event : "offer",
             sdp : offer.sdp,
-        }, (e) => {console.log(e)})
+        }, (e) => {console.log(`creating offer error: ${e}`)})
     }, function(error) {
-        console.log(error);
+        console.log(`creating offer error: ${error}`);
     });
 }
 
-export function handleOffer(offer, peerRef) {
-    console.log("handling offer", offer)
-    console.log("peer ref offer", peerRef)
+export function handleOffer(offer, answerRef) {
+    console.log("handling offer: ", offer);
     var offerObj = {
         sdp: offer.sdp,
         type: "offer"
-    }
+    };
     peerConnection.setRemoteDescription(new RTCSessionDescription(offerObj));
 
     // create and send an answer to an offer
@@ -96,27 +94,30 @@ export function handleOffer(offer, peerRef) {
             event : "answer",
             data : answer
         });
-        peerRef.child('answer').set({
+        answerRef.child('answer').set({
             event : "answer",
-            sdp : offer.sdp,
+            sdp : answer.sdp,
         })
     }, function(error) {
         alert("Error creating an answer");
     });
-
 };
 
-function handleCandidate(candidate) {
-    peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+export function handleCandidate(candidate) {
+    if (candidate.candidate){
+        peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    }
 };
 
-export function handleAnswer(answer) {
+export function handleAnswer(answer, peer) {
     var answerObj = {
         sdp: answer.sdp,
         type: "answer"
-    }
+    };
     peerConnection.setRemoteDescription(new RTCSessionDescription(answerObj));
     console.log("connection established successfully!!");
+    sendCandidates(peer)
+
 };
 
 export function sendMessage(data) {
@@ -124,4 +125,17 @@ export function sendMessage(data) {
     if(dataChannel.readyState === 'open'){
         dataChannel.send(data);
     }
+}
+
+function sendCandidates(peer) {
+
+    console.log("started sending candidates");
+    candidates.map((candid) => {
+        console.log("candidate received:", candid)
+        databaseRef.child(`/candidates/${peer}`).set({
+            event: "candidate",
+            data: candid.toJSON(),
+        }, (e) => {console.log(`sending candidates error: ${e}`)})
+    })
+
 }

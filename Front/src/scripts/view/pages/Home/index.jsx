@@ -2,7 +2,14 @@ import React, {useEffect, useState, useRef} from 'react';
 import {Input, Icon, Tooltip, Col, Upload, message, Button, Avatar, Divider, Row, Descriptions} from 'antd';
 import uuid from 'uuid/v1'
 import {databaseRef} from "../../../core/webrtc/firebase";
-import {createOffer, onopen, handleOffer, handleAnswer, sendMessage} from "../../../core/webrtc/web-rtc";
+import {
+    createOffer,
+    onopen,
+    handleOffer,
+    handleAnswer,
+    sendMessage,
+    handleCandidate
+} from "../../../core/webrtc/web-rtc";
 
 const {Search} = Input;
 
@@ -49,9 +56,13 @@ const Home = () => {
         return () => {
             ref.current.storedUser.remove();
             ref.current.storedUserRoomRef.remove();
+            databaseRef.child(`/candidates/${enteredUsername}`).remove();
+            databaseRef.child(`/offers/${enteredUsername}`).remove();
+            databaseRef.child(`/answers/${enteredUsername}`).remove();
         }
     }, []);
     const createUser = (user_id, username, ip) => {
+        console.log(`creating user username: ${username}`)
         const usersRef = databaseRef.child(`users`);
         const userRef = usersRef.child(`${username}`);
         const userSpec = {
@@ -75,7 +86,7 @@ const Home = () => {
         createRoom(username, userSpec)
     };
     const createRoom = (username, user) => {
-        console.log(username, user);
+        console.log(`creating room for username: ${username}`);
         const roomRef = databaseRef.child(`rooms/${username}`);
         const userRoomRef = roomRef.child(`users/${username}`);
         roomRef.set({
@@ -84,15 +95,16 @@ const Home = () => {
             if (e === null) {
                 setRoomCreated(true);
             } else {
-                console.log(e);
+                console.log(`creating room error: ${e}`);
                 return false;
             }
         });
-        userRoomRef.set(user, (e) => console.log(e));
+        userRoomRef.set(user, (e) => console.log(`creating user error: ${e}`));
         roomChange(roomRef);
 
-        onOfferReceived(userRoomRef, peerRef);
-        onAnswerRecieved()
+        onOfferReceived();
+        onAnswerRecieved();
+        onCandidateRecieve();
 
         setStoredUserRoomRef(userRoomRef)
     };
@@ -105,17 +117,16 @@ const Home = () => {
         onopen();
     };
     const roomChange = (roomRef) => {
-        console.log('track room changes')
+        console.log('Started tracking room changes')
         roomRef.on('value', (snapshot) => {
-            console.log('new snapshot', snapshot.val())
+            console.log('New Change on room with:', snapshot.val())
             if (snapshot.val() !== null) {
                 const users = snapshot.val().users !== null ? snapshot.val().users : undefined;
-                console.log('users in snapshot : ', users);
+                console.log('Users of the Snapshot: ', users);
                 if (users && Object.keys(users).length > 1 && !peerCreated) {
                     Object.keys(users).map((username) => {
-                        console.log(username)
                         if (username !== enteredUsername) {
-                            console.log("ANTAAAR")
+                            console.log(`Identified a new peer with username: ${username}`)
                             const newPeer = users[username]
                             setPeer(newPeer)
                             setPeerRef(roomRef.child(`users/${username}`))
@@ -126,21 +137,29 @@ const Home = () => {
             }
         })
     }
-    const onOfferReceived = (userRoomRef, peerRef) => {
-        console.log('user room ref', userRoomRef);
-        console.log("peer ref offer on offer", peerRef)
-        console.log('track offer receive');
+    const onOfferReceived = () => {
+        console.log('Started receiving offers');
         databaseRef.child(`/offers/${enteredUsername}`).on('child_added', (data) => {
-            console.log("NEEEEEW", data.val())
-            const reef = databaseRef.child(`/answers/${data.key}/${enteredUsername}`)
-            handleOffer(data.val().offer, reef)
+            console.log("new offer received: ", data.val())
+            console.log("offer from: ", data.key)
+            const answerRef = databaseRef.child(`/answers/${data.key}/${enteredUsername}`)
+            handleOffer(data.val().offer, answerRef)
         })
     }
     const onAnswerRecieved = () => {
+        console.log('Started receiving answers');
         databaseRef.child(`/answers/${enteredUsername}`).on('child_added', (data) => {
-            console.log("DATAAAAA", data)
-            console.log("DATAAAAA1", data.val())
-            handleAnswer(data.val().answer)
+            console.log("new answer received:", data.val())
+            console.log("answer from", data.key)
+            handleAnswer(data.val().answer, data.key)
+        })
+    }
+    const onCandidateRecieve = () => {
+        console.log('Started receiving candidates');
+        databaseRef.child(`/candidates/${enteredUsername}`).on('child_added', (data) => {
+            console.log("new candidate received:", data.val())
+            console.log("candidate from", data.key)
+            handleCandidate(data.val())
         })
     }
     const searchFun = (value) => {
@@ -150,14 +169,12 @@ const Home = () => {
                 console.log('room does not exist');
                 return
             }
-            const users = roomSnapshot.val() !== null ? roomSnapshot.val().users : undefined
+            const users = roomSnapshot.val() !== null ? roomSnapshot.val().users : undefined;
             if (users && Object.keys(users).length === 1) {
                 setPeer(users[Object.keys(users)[0]]);
                 setPeerRef(roomRef.child(`/users/${value}`))
             }
             const userRef = databaseRef.child(`/users/${value}`);
-            // setStoredUserRoomRef(userRef);
-            // onOfferReceived(userRef);
             userRef.once('value', (userSnapShot) => {
                 if (userSnapShot === null) {
                     console.log('user does not exist');
@@ -168,7 +185,7 @@ const Home = () => {
                     if (e === null) {
                         console.log('user added to room');
                     } else {
-                        console.log(e);
+                        console.log(`error adding to room: ${e}`);
                     }
                 });
                 if (storedUserRoomRef !== null) {
@@ -186,11 +203,12 @@ const Home = () => {
         })
     };
     const handleAvatarClick = () => {
-        console.log('cliiiiiiicke', peerRef)
+        console.log('Clicked on peer');
+        console.log('Connecting to peer');
         const offerRef = databaseRef.child(`/offers/${peer["username"]}/${enteredUsername}`)
         createOffer(offerRef);
     };
-    console.log(userCreated)
+
     return (
         <div style={{display: 'flex', justifyContent: 'center'}}>
             <Col lg={12} md={16} xs={20} span={7} style={{marginTop: "4rem"}}>
