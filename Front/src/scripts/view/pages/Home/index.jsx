@@ -1,7 +1,8 @@
 import React, {useEffect, useState, useRef} from 'react';
-import {Input, Icon, Tooltip, Col, Upload, message, Button} from 'antd';
+import {Input, Icon, Tooltip, Col, Upload, message, Button, Avatar, Divider, Row, Descriptions} from 'antd';
 import uuid from 'uuid/v1'
 import {databaseRef} from "../../../core/webrtc/firebase";
+import {createOffer, onopen, handleOffer} from "../../../core/webrtc/web-rtc";
 
 const {Search} = Input;
 
@@ -31,20 +32,23 @@ const Home = () => {
     const [storedUserSpec, setStoredUserSpec] = useState(null);
     const [storedUserRoomRef, setStoredUserRoomRef] = useState(null);
     const [enteredUsername, setEnteredUsername] = useState('');
-    const ref = useRef()
+    const [peer, setPeer] = useState(null);
+    const [userCreated, setUserCreated] = useState(false);
+    const [roomCreated, setRoomCreated] = useState(false);
+    const [peerCreated, setPeerCreated] = useState(false);
+    const [peerRef, setPeerRef] = useState(null);
+    const ref = useRef();
+
     ref.current = {
         storedUser,
         storedUserRoomRef
     }
     useEffect(() => {
-        console.log('mounting');
         return () => {
-            alert('Imma Head out');
-            console.log('Imma Head out');
             ref.current.storedUser.remove();
             ref.current.storedUserRoomRef.remove();
         }
-    }, [])
+    }, []);
     const createUser = (user_id, username, ip) => {
         const usersRef = databaseRef.child(`users`);
         const userRef = usersRef.child(`${username}`);
@@ -55,9 +59,16 @@ const Home = () => {
             peer: {
                 id: user_id,
             }
-        }
-        setStoredUserSpec(userSpec)
-        userRef.set(userSpec, (e) => console.log(e));
+        };
+        setStoredUserSpec(userSpec);
+        userRef.set(userSpec, (e) => {
+            if (e === null) {
+                setUserCreated(true);
+            } else {
+                return false;
+            }
+            ;
+        });
         setStoredUser(userRef);
         createRoom(username, userSpec)
     };
@@ -67,48 +78,115 @@ const Home = () => {
         const userRoomRef = roomRef.child(`users/${username}`);
         roomRef.set({
             room_id: username,
-        }, (e) => console.log(e));
+        }, (e) => {
+            if (e === null) {
+                setRoomCreated(true);
+            } else {
+                console.log(e);
+                return false;
+            }
+        });
         userRoomRef.set(user, (e) => console.log(e));
+        roomChange(roomRef);
+
+        // onOfferReceived(userRoomRef, peerRef);
+
         setStoredUserRoomRef(userRoomRef)
     };
     const login = (e) => {
         setEnteredUsername(e.target.value);
         const username = e.target.value;
         const user_id = uuid();
-        const ip = sessionStorage.getItem('ip')
-        createUser(user_id, username, ip)
-
+        const ip = sessionStorage.getItem('ip');
+        createUser(user_id, username, ip);
+        onopen();
     };
-
+    const roomChange = (roomRef) => {
+        console.log('track room changes')
+        roomRef.on('value', (snapshot) => {
+            console.log('new snapshot', snapshot.val())
+            if (snapshot.val() !== null) {
+                const users = snapshot.val().users !== null ? snapshot.val().users : undefined;
+                console.log('users in snapshot : ', users);
+                if (users && Object.keys(users).length > 1 && !peerCreated) {
+                    Object.keys(users).map((username) => {
+                        console.log(username)
+                        if (username !== enteredUsername) {
+                            const newPeer = users[username]
+                            setPeer(newPeer)
+                            // setPeerRef(roomRef.child(`users/${username}`))
+                            setPeerCreated(true)
+                        }
+                    })
+                }
+            }
+        })
+    }
+    const onOfferReceived = (userRoomRef, peerRef) => {
+        console.log('user room ref', userRoomRef);
+        console.log("peer ref offer on offer", peerRef)
+        console.log('track offer receive');
+        // userRoomRef.on('child_added', (data) => {
+        //     // if data.val
+        //     console.log('offer received: ', data.val());
+        //     if (data.val().event === "offer"){
+        //         console.log("giving answer")
+        //         console.log(data.val())
+        //         handleOffer(data.val(),peerRef)
+        //     }
+        //
+        // })
+    }
     const searchFun = (value) => {
         const roomRef = databaseRef.child(`/rooms/${value}`);
-        let roomExist = false;
-        roomRef.on('value', (snapshot) => {
-            if (snapshot !== null) {
-                roomExist = true;
-                console.log(snapshot.val())
+        roomRef.on('value', (roomSnapshot) => {
+            if (roomSnapshot === null) {
+                console.log('room does not exist');
+                return
             }
-        });
-        const userRef = databaseRef.child(`/users/${value}`);
-        let userExist = false;
-        userRef.on('value', (snapshot) => {
-            if (snapshot !== null) {
-                userExist = true;
+            const users = roomSnapshot.val() !== null ? roomSnapshot.val().users : undefined
+            if (users && Object.keys(users).length === 1) {
+                setPeer(users[Object.keys(users)[0]]);
+                setPeerRef(roomRef.child(`/users/${value}`))
             }
-        });
-        if (roomExist && userExist) {
-            storedUserRoomRef.remove();
-            roomRef.child(`users/${enteredUsername}`).set(storedUserSpec, (e) => {
-                console.log(e)
+            const userRef = databaseRef.child(`/users/${value}`);
+            // setStoredUserRoomRef(userRef);
+            // onOfferReceived(userRef);
+            userRef.once('value', (userSnapShot) => {
+                if (userSnapShot === null) {
+                    console.log('user does not exist');
+                    return
+                }
+
+                roomRef.child(`users/${enteredUsername}`).set(storedUserSpec, (e) => {
+                    if (e === null) {
+                        console.log('user added to room');
+                    } else {
+                        console.log(e);
+                    }
+                });
+                if (storedUserRoomRef !== null) {
+                    storedUserRoomRef.remove();
+                }
+                setStoredUserRoomRef(roomRef);
+                roomChange(roomRef)
+                roomRef.child(`/users/${enteredUsername}`).once('value', (newUserSnapshot) => {
+                    if (newUserSnapshot !== null) {
+                        setStoredUserRoomRef(roomRef.child(`/users/${enteredUsername}`))
+
+                    }
+                })
             })
-        } else {
-            console.log("Not Found")
-        }
+        })
     };
+    const handleAvatarClick = () => {
+        console.log('cliiiiiiicke', peerRef)
+        createOffer(peerRef);
+    };
+    console.log(userCreated)
     return (
         <div style={{display: 'flex', justifyContent: 'center'}}>
-            <Col lg={12} md={16} xs={20} span={8} style={{marginTop: "4rem"}}>
-                <Search  placeholder="search for users" onSearch={value => searchFun(value)} enterButton/>
+            <Col lg={12} md={16} xs={20} span={7} style={{marginTop: "4rem"}}>
                 <Input
                     value={enteredUsername}
                     onChange={(e) => {
@@ -117,7 +195,7 @@ const Home = () => {
                     style={{margin: '2rem 0'}}
                     onPressEnter={value => login(value)}
                     placeholder="Enter your username"
-                    prefix={<Icon type="user" style={{color: 'rgba(0,0,0,.25)'}}/>}
+                    prefix={<Icon type={"user"} style={{color: 'rgba(0,0,0,.25)'}}/>}
                     suffix={
                         <Tooltip title="Extra information">
                             <Icon
@@ -130,17 +208,50 @@ const Home = () => {
                         </Tooltip>
                     }
                 />
-                <Dragger {...props}>
-                    <p className="ant-upload-drag-icon">
-                        <Icon type="inbox"/>
-                    </p>
-                    <p className="ant-upload-text">Click or drag file to this area to upload</p>
-                    <p className="ant-upload-hint">
-                        Support for a single or bulk upload. Strictly prohibit from uploading company data or other
-                        band files
-                    </p>
+                {userCreated && (
+                    <Search
+                        style={{marginBottom: '2rem'}}
+                        placeholder="search for users"
+                        onSearch={value => searchFun(value)}
+                        enterButton
+                    />
+                )}
 
-                </Dragger>
+                <Row>
+                    <Col lg={9} md={12} xs={15} offset={1} span={4}>
+                        <Avatar
+                            icon={storedUserSpec ? "user" : "qq"}
+                            size={256}
+                            alt="userName"
+                        />
+                        <div align="center">
+                            <Descriptions title={storedUserSpec ? storedUserSpec["username"] : ""}/>
+                        </div>
+                    </Col>
+                    <Col lg={9} md={12} xs={15} offset={4} span={4}>
+                        <Avatar
+                            onClick={handleAvatarClick}
+                            icon={peer ? "up-square" : "qq"}
+                            size={256}
+                        />
+                        <div align="center">
+                            <Descriptions title={peer ? peer["username"] : ""}/>
+                        </div>
+                    </Col>
+                </Row>
+                {peer && (
+                    <Dragger {...props}>
+                        <p className="ant-upload-drag-icon">
+                            <Icon type="inbox"/>
+                        </p>
+                        <p className="ant-upload-text">Click or drag file to this area to upload</p>
+                        <p className="ant-upload-hint">
+                            Support for a single or bulk upload. Strictly prohibit from uploading company data or other
+                            band files
+                        </p>
+                    </Dragger>
+                )}
+
             </Col>
         </div>
     )
