@@ -302,14 +302,14 @@ function sendFile(file) {
             // offset += e.target.result.byteLength;
             offset += chunkSize;
             console.log("offset", offset)
-            setSent(offset);
+            setSentOffset(offset);
             if (offset < file.size) {
                 readSlice(offset);
             } else {
                 console.log('finished sending file')
                 changeStatus('idle');
                 offset = 0;
-                setSent(offset);
+                setSentOffset(offset);
             }
         }, 100)
     });

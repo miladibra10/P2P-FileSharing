@@ -364,8 +364,8 @@ const Home = ({status, fileInfo, dispatch,sent, received, receivedFiles}) => {
                 )}
                 <Row>
                     <Col style={{marginTop:"2em",display:"flex",justifyContent:"center"}} span={12} offset={6}>
-                        {(received/fileInfo.size >= 100) && message.success("file received") }
-                        {(sent/fileInfo.size >= 100) && message.success("file sent") }
+                        {/*{(received/fileInfo.size >= 100) && message.success("file received") }*/}
+                        {/*{(sent/fileInfo.size >= 100) && message.success("file sent") }*/}
                         {((status === "sending") ) && <Progress type="circle" percent={(sent/fileInfo.size) * 100} /> }
                         {(((status === "receiving") )) && <Progress type="circle" percent={(received/fileInfo.size) * 100} /> }
                     </Col>
