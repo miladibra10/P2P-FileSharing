@@ -13,6 +13,15 @@ function getFile() {
     return store.getState().webrtc.file;
 }
 
+function setSentOffset(offset) {
+    store.dispatch(setSent(offset))
+}
+
+function setReceivedOffset(offset) {
+    store.dispatch(setReceived(offset))
+}
+
+
 function setLink(downloadLink) {
     store.dispatch(setDownloadLink(downloadLink))
 }
@@ -106,7 +115,7 @@ function initialize() {
             // receivedBuffer.push(event.data);
             receivedStr += jsonData.data;
             receivedSize += chunkSize;
-            setReceived(receivedSize);
+            setReceivedOffset(receivedSize);
 
             if (receivedSize >= getFileInfo().size) {
                 // receivedFile = new Blob(receivedBuffer);
@@ -126,7 +135,7 @@ function initialize() {
                 receivedStr = "";
                 setLink(URL.createObjectURL(receivedFile))
                 changeStatus('idle');
-                setReceived(0);
+                setReceivedOffset(0);
                 receivedSize=0;
                 console.log('finished receiving file', URL.createObjectURL(receivedFile))
             }

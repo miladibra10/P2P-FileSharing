@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useRef} from 'react';
 import { connect } from 'react-redux';
-import {Input, Icon, Tooltip, Col, Upload, message, Button, Avatar, Modal, Row, Descriptions} from 'antd';
+import {Input, Icon, Tooltip, Col, Upload, message, Button, Avatar, Modal, Row, Descriptions, Progress} from 'antd';
 import uuid from 'uuid/v1'
 import {databaseRef} from "../../../core/webrtc/firebase";
 import {
@@ -20,7 +20,7 @@ const {Search} = Input;
 const {Dragger} = Upload;
 
 
-const Home = ({status, fileInfo, dispatch}) => {
+const Home = ({status, fileInfo, dispatch,sent, received}) => {
     const [storedUser, setStoredUser] = useState(null);
     const [storedUserSpec, setStoredUserSpec] = useState(null);
     const [storedUserRoomRef, setStoredUserRoomRef] = useState(null);
@@ -332,8 +332,14 @@ const Home = ({status, fileInfo, dispatch}) => {
                         </p>
                     </Dragger>
                 )}
-
+                <Row>
+                    <Col style={{marginTop:"2em",display:"flex",justifyContent:"center"}} span={12} offset={6}>
+                        {((status === "sending") ) && <Progress type="circle" percent={(sent/fileInfo.size) * 100} /> }
+                        {(((status === "receiving") )) && <Progress type="circle" percent={(received/fileInfo.size) * 100} /> }
+                    </Col>
+                </Row>
             </Col>
+
             <Button
                 onClick={() => {
                     sendMessage('hello from the other side');
@@ -348,7 +354,9 @@ const Home = ({status, fileInfo, dispatch}) => {
 const mapStateToProps = state => {
     return {
         status: state.webrtc.status,
-        fileInfo: state.webrtc.fileInfo
+        fileInfo: state.webrtc.fileInfo,
+        received: state.webrtc.received,
+        sent: state.webrtc.sent
     }
 }
 export default connect(mapStateToProps)(Home)
