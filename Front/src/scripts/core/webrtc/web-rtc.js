@@ -92,7 +92,7 @@ function initialize() {
     dataChannel = peerConnection.createDataChannel("dataChannel", {
         reliable : true
     });
-    // dataChannel.binaryType = "arraybuffer";
+    dataChannel.binaryType = "arraybuffer";
 
     dataChannel.onerror = function(error) {
         console.log("Error occured on datachannel:", error);

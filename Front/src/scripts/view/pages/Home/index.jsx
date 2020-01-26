@@ -280,11 +280,14 @@ const Home = ({status, fileInfo, dispatch,sent, received, receivedFiles}) => {
     return (
         <div style={{display: 'flex', justifyContent: 'center'}}>
             <Col lg={12} md={16} xs={20} span={7} style={{marginTop: "4rem"}}>
+                {(storedUser === null) &&
                 <Input
                     value={enteredUsername}
                     onChange={(e) => {
                         setEnteredUsername(e.target.value)
                     }}
+
+
                     style={{margin: '2rem 0'}}
                     onPressEnter={value => login(value)}
                     placeholder="Enter your username"
@@ -300,7 +303,7 @@ const Home = ({status, fileInfo, dispatch,sent, received, receivedFiles}) => {
                             />
                         </Tooltip>
                     }
-                />
+                />}
                 {userCreated && (
                     <Search
                         style={{marginBottom: '2rem'}}
