@@ -241,7 +241,6 @@ const Home = ({status, fileInfo, dispatch}) => {
             data: false
         }
         sendMessage(ack)
-
     }
 
     const handleAvatarClick = () => {

@@ -2,7 +2,6 @@ import React from "react";
 import { connect } from "react-redux";
 import { Switch, Route } from "react-router-dom";
 import Home from './scripts/view/pages/Home/index';
-import {util} from './scripts/core/webrtc/peer';
 import initialize from "./scripts/core/webrtc/initialize";
 import "./scripts/view/styles/main.scss"
 

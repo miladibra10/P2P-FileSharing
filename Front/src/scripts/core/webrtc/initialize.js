@@ -2,35 +2,20 @@
 import { Promise } from 'rsvp';
 import config from '../../environment';
 
-import FileSystem from './file';
-import {util} from './peer';
 import {request} from '../api/api'
 // import Analytics from '../services/analytics';
 
 export function initialize() {
     function checkWebRTCSupport() {
         return new Promise((resolve, reject) => {
-            if (util.supports.sctp) {
-                resolve();
-            } else {
-                // eslint-disable-next-line prefer-promise-reject-errors
-                reject('browser-unsupported');
-            }
+            resolve()
         });
     }
 
     function clearFileSystem() {
         return new Promise((resolve, reject) => {
             // TODO: change File into a service and require it here
-            FileSystem.removeAll()
-                .then(() => {
-                    resolve();
-                })
-                .catch((e) => {
-                    // eslint-disable-next-line prefer-promise-reject-errors
-                    console.log(e)
-                    reject('filesystem-unavailable');
-                });
+            resolve()
         });
     }
 
