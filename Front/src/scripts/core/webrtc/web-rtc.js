@@ -1,6 +1,18 @@
 import {databaseRef} from "./firebase";
+import {store} from "../store";
+import {setUserStatus, setFileInfo} from '../actions/webrtc';
 
+function getStatus(){
+    return store.getState().webrtc.status;
+}
 
+function changeStatus(status){
+    store.dispatch(setUserStatus(status))
+}
+
+function changeFileInfo(fileInfo){
+    store.dispatch(setFileInfo(fileInfo))
+}
 export function onopen() {
     console.log("Connected to the signaling server");
     initialize();
@@ -55,7 +67,13 @@ function initialize() {
 
     // when we receive a message from the other peer, printing it on the console
     dataChannel.onmessage = function(event) {
-        console.log("message:", event.data);
+        console.log("received message: ", event.data);
+        const data = JSON.parse(event.data);
+        if(data.type === 'file-info'){
+            console.log("received file-info: ", data);        
+            changeStatus('file-info-received');
+            changeFileInfo(data)
+        }
     };
 
     dataChannel.onclose = function() {
@@ -106,6 +124,7 @@ export function handleOffer(offer, answerRef) {
 export function handleCandidate(candidate) {
     if (candidate.candidate){
         peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        changeStatus('idle');
     }
 };
 
@@ -116,14 +135,22 @@ export function handleAnswer(answer, peer) {
     };
     peerConnection.setRemoteDescription(new RTCSessionDescription(answerObj));
     console.log("connection established successfully!!");
+    changeStatus('idle');
     sendCandidates(peer)
 
 };
 
 export function sendMessage(data) {
-    console.log(data, dataChannel.readyState)
+    console.log('channel open: ',data.type ,dataChannel.readyState)
     if(dataChannel.readyState === 'open'){
-        dataChannel.send(data);
+        if(data.type === 'file-info'){
+            console.log('sending file info', data)
+            changeStatus('file-info-sent');
+            dataChannel.send(JSON.stringify(data));
+        }
+        else {
+            dataChannel.send(data);
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 import { combineReducers } from "redux";
-import posts from './posts'
+import webrtc from './webrtc'
 
 export default combineReducers({
-    posts
+    webrtc
 });

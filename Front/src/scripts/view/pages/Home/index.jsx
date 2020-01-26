@@ -1,4 +1,5 @@
 import React, {useEffect, useState, useRef} from 'react';
+import { connect } from 'react-redux';
 import {Input, Icon, Tooltip, Col, Upload, message, Button, Avatar, Divider, Row, Descriptions} from 'antd';
 import uuid from 'uuid/v1'
 import {databaseRef} from "../../../core/webrtc/firebase";
@@ -19,22 +20,33 @@ const {Dragger} = Upload;
 const props = {
     name: 'file',
     multiple: true,
-    action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76', // @TODO should change
-    onChange(info) {
-        const {status} = info.file;
-        if (status !== 'uploading') {
-            console.log(info.file, info.fileList);
+    action: (file) => {
+        const fileInfo = {
+            type: 'file-info',
+            data: {
+                type: file.type,
+                size: file.size,
+                name: file.name    
+            }
         }
-        if (status === 'done') {
-            message.success(`${info.file.name} file uploaded successfully.`);
-        } else if (status === 'error') {
-            message.error(`${info.file.name} file upload failed.`);
-        }
+        sendMessage(fileInfo);
     },
+    // onChange(info) {
+    //     const {status} = info.file;
+    //     console.log(info)
+    //     // if (status !== 'uploading') {
+    //     //     console.log(info.file, info.fileList);
+    //     // }
+    //     // if (status === 'done') {
+    //     //     message.success(`${info.file.name} file uploaded successfully.`);
+    //     // } else if (status === 'error') {
+    //     //     message.error(`${info.file.name} file upload failed.`);
+    //     // }
+    // },
 };
 
 
-const Home = () => {
+const Home = ({status}) => {
     const [storedUser, setStoredUser] = useState(null);
     const [storedUserSpec, setStoredUserSpec] = useState(null);
     const [storedUserRoomRef, setStoredUserRoomRef] = useState(null);
@@ -61,8 +73,9 @@ const Home = () => {
             databaseRef.child(`/answers/${enteredUsername}`).remove();
         }
     }, []);
+
+
     const createUser = (user_id, username, ip) => {
-        console.log(`creating user username: ${username}`)
         const usersRef = databaseRef.child(`users`);
         const userRef = usersRef.child(`${username}`);
         const userSpec = {
@@ -243,21 +256,27 @@ const Home = () => {
                 )}
 
                 <Row>
-                    <Col lg={9} md={12} xs={15} offset={1} span={4}>
+                    <Col span={12}  style={{textAlign: 'center'}}>
                         <Avatar
                             icon={storedUserSpec ? "user" : "qq"}
-                            size={256}
                             alt="userName"
+                            size={150}
                         />
                         <div align="center">
                             <Descriptions title={storedUserSpec ? storedUserSpec["username"] : ""}/>
                         </div>
+                        <div align="center">
+                            <div>
+                                {status !== null ? status : ''}
+                            </div>
+                        </div>
+
                     </Col>
-                    <Col lg={9} md={12} xs={15} offset={4} span={4}>
+                    <Col span={12} style={{textAlign: 'center'}}>
                         <Avatar
                             onClick={handleAvatarClick}
                             icon={peer ? "up-square" : "qq"}
-                            size={256}
+                            size={150}
                         />
                         <div align="center">
                             <Descriptions title={peer ? peer["username"] : ""}/>
@@ -265,7 +284,7 @@ const Home = () => {
                     </Col>
                 </Row>
                 {peer && (
-                    <Dragger {...props}>
+                    <Dragger {...props} height={200}>
                         <p className="ant-upload-drag-icon">
                             <Icon type="inbox"/>
                         </p>
@@ -288,4 +307,11 @@ const Home = () => {
         </div>
     )
 };
-export default Home
+
+const mapStateToProps = state => {
+    console.log('sssssssssssssssssssssssssssssssssssss', state.webrtc.status)
+    return {
+        status: state.webrtc.status
+    }
+}
+export default connect(mapStateToProps)(Home)

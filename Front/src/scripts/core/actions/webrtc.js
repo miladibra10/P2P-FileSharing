@@ -17,6 +17,8 @@ const {
     FILE_CANCELED,
     RESPONSE,
     FILE_SENT,
+    SET_USER_STATUS,
+    SET_FILE_INFO,
 } = ActionTypes
 
 
@@ -137,5 +139,22 @@ export function fileSent() {
     return {
         type: FILE_SENT,
         payload: {}
+    }
+}
+export function setFileInfo(fileInfo){
+    return {
+        type: SET_FILE_INFO,
+        payload:{
+            fileInfo: fileInfo 
+        }
+    }
+}
+
+export function setUserStatus(status){
+    return {
+        type: SET_USER_STATUS,
+        payload: {
+            status: status
+        }
     }
 }
