@@ -19,6 +19,10 @@ const {
     FILE_SENT,
     SET_USER_STATUS,
     SET_FILE_INFO,
+    SET_RECEIVED,
+    SET_SENT,
+    SET_DOWNLOAD_LINK,
+    SET_FILE,
 } = ActionTypes
 
 
@@ -158,3 +162,37 @@ export function setUserStatus(status){
         }
     }
 }
+
+export function setReceived(received) {
+    return {
+        type: SET_RECEIVED,
+        payload: {
+            received
+        }
+    }
+}
+export function setSent(sent) {
+    return {
+        type: SET_SENT,
+        payload: {
+            sent
+        }
+    }
+}
+export function setDownloadLink(downloadLink) {
+    return {
+        type: SET_DOWNLOAD_LINK,
+        payload: {
+            downloadLink
+        }
+    }
+}
+export function setFile(file) {
+    return {
+        type: SET_FILE,
+        payload: {
+            file
+        }
+    }
+}
+

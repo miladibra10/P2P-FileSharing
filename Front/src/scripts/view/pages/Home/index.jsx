@@ -9,45 +9,18 @@ import {
     handleOffer,
     handleAnswer,
     sendMessage,
-    handleCandidate
+    handleCandidate,
 } from "../../../core/webrtc/web-rtc";
-import {setUserStatus} from "../../../core/actions/webrtc";
+import {setUserStatus, setFile} from "../../../core/actions/webrtc";
+import {store} from "../../../core/store";
 
 const {Search} = Input;
 
 
 const {Dragger} = Upload;
 
-const props = {
-    name: 'file',
-    multiple: true,
-    action: (file) => {
-        const fileInfo = {
-            type: 'file-info',
-            data: {
-                type: file.type,
-                size: file.size,
-                name: file.name    
-            }
-        }
-        sendMessage(fileInfo);
-    },
-    // onChange(info) {
-    //     const {status} = info.file;
-    //     console.log(info)
-    //     // if (status !== 'uploading') {
-    //     //     console.log(info.file, info.fileList);
-    //     // }
-    //     // if (status === 'done') {
-    //     //     message.success(`${info.file.name} file uploaded successfully.`);
-    //     // } else if (status === 'error') {
-    //     //     message.error(`${info.file.name} file upload failed.`);
-    //     // }
-    // },
-};
 
-
-const Home = ({status, dispatch}) => {
+const Home = ({status, fileInfo, dispatch}) => {
     const [storedUser, setStoredUser] = useState(null);
     const [storedUserSpec, setStoredUserSpec] = useState(null);
     const [storedUserRoomRef, setStoredUserRoomRef] = useState(null);
@@ -64,7 +37,40 @@ const Home = ({status, dispatch}) => {
         storedUserRoomRef,
         peerRef,
         peer
-    }
+    };
+
+    const setFileToStore = (file) => {
+        store.dispatch(setFile(file))
+    };
+    const props = {
+        name: 'file',
+        multiple: true,
+        action: (file) => {
+            const fileInfo = {
+                type: 'file-info',
+                data: {
+                    type: file.type,
+                    size: file.size,
+                    name: file.name,
+                }
+            };
+            setFileToStore(file);
+            sendMessage(fileInfo);
+        },
+        // onChange(info) {
+        //     const {status} = info.file;
+        //     console.log(info)
+        //     // if (status !== 'uploading') {
+        //     //     console.log(info.file, info.fileList);
+        //     // }
+        //     // if (status === 'done') {
+        //     //     message.success(`${info.file.name} file uploaded successfully.`);
+        //     // } else if (status === 'error') {
+        //     //     message.error(`${info.file.name} file upload failed.`);
+        //     // }
+        // },
+    };
+
     useEffect(() => {
         return () => {
             ref.current.storedUser.remove();
@@ -284,7 +290,9 @@ const Home = ({status, dispatch}) => {
                     onOk={() => onAccept() }
                     okText = "Accept"
                     onCancel={() => onReject()}
-                />
+                >
+                    <p>You are about to receive <b>{fileInfo.name}</b></p>
+                </Modal>
                 <Row>
                     <Col span={12}  style={{textAlign: 'center'}}>
                         <Avatar
@@ -339,9 +347,9 @@ const Home = ({status, dispatch}) => {
 };
 
 const mapStateToProps = state => {
-    console.log('sssssssssssssssssssssssssssssssssssss', state.webrtc.status)
     return {
-        status: state.webrtc.status
+        status: state.webrtc.status,
+        fileInfo: state.webrtc.fileInfo
     }
 }
 export default connect(mapStateToProps)(Home)
