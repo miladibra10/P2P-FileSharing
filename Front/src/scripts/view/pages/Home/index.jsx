@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useRef} from 'react';
 import { connect } from 'react-redux';
-import {Input, Icon, Tooltip, Col, Upload, message, Button, Avatar, Divider, Row, Descriptions} from 'antd';
+import {Input, Icon, Tooltip, Col, Upload, message, Button, Avatar, Modal, Row, Descriptions} from 'antd';
 import uuid from 'uuid/v1'
 import {databaseRef} from "../../../core/webrtc/firebase";
 import {
@@ -11,6 +11,7 @@ import {
     sendMessage,
     handleCandidate
 } from "../../../core/webrtc/web-rtc";
+import {setUserStatus} from "../../../core/actions/webrtc";
 
 const {Search} = Input;
 
@@ -46,7 +47,7 @@ const props = {
 };
 
 
-const Home = ({status}) => {
+const Home = ({status, dispatch}) => {
     const [storedUser, setStoredUser] = useState(null);
     const [storedUserSpec, setStoredUserSpec] = useState(null);
     const [storedUserRoomRef, setStoredUserRoomRef] = useState(null);
@@ -215,6 +216,28 @@ const Home = ({status}) => {
             })
         })
     };
+    const changeStatus = (status) => {
+        dispatch(setUserStatus(status))
+
+    }
+    const onAccept = () => {
+        console.log("accepted file")
+        const ack ={
+            type: "file-acceptance",
+            data: true
+        }
+        sendMessage(ack)
+    }
+
+    const onReject = () => {
+        const ack ={
+            type: "file-acceptance",
+            data: false
+        }
+        sendMessage(ack)
+
+    }
+
     const handleAvatarClick = () => {
         console.log('Clicked on peer');
         console.log('Connecting to peer');
@@ -254,7 +277,14 @@ const Home = ({status}) => {
                         enterButton
                     />
                 )}
-
+                <Modal
+                    title="Incoming file"
+                    centered
+                    visible={status === "file-info-received"}
+                    onOk={() => onAccept() }
+                    okText = "Accept"
+                    onCancel={() => onReject()}
+                />
                 <Row>
                     <Col span={12}  style={{textAlign: 'center'}}>
                         <Avatar

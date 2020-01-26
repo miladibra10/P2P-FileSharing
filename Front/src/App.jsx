@@ -17,6 +17,7 @@ class App extends React.Component {
             <Route
                 exact
                 path="/"
+                dispatch={this.props.dispatch}
                 component={() => <Home/>}
             />
 

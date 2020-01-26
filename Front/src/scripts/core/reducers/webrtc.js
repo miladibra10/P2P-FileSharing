@@ -16,7 +16,7 @@ export default (state=initialState, action) => {
             return immutable(state, {
                 status: {$set: action.payload.status}
             })
-        case ActionTypes.SET_TYPE_INFO:
+        case ActionTypes.SET_FILE_INFO:
             return immutable(state, {
                 fileInfo :{$set: action.payload.fileInfo}   
             })

@@ -74,6 +74,14 @@ function initialize() {
             changeStatus('file-info-received');
             changeFileInfo(data)
         }
+        if(data.type === 'file-acceptance'){
+            console.log("received acceptance: ", data);
+            if(data.data){
+                changeStatus('sending');
+            } else {
+                changeStatus('idle');
+            }
+        }
     };
 
     dataChannel.onclose = function() {
@@ -141,11 +149,20 @@ export function handleAnswer(answer, peer) {
 };
 
 export function sendMessage(data) {
-    console.log('channel open: ',data.type ,dataChannel.readyState)
+    console.log('channel open: ', data, data.type ,dataChannel.readyState)
     if(dataChannel.readyState === 'open'){
         if(data.type === 'file-info'){
             console.log('sending file info', data)
             changeStatus('file-info-sent');
+            dataChannel.send(JSON.stringify(data));
+        }
+        if(data.type === 'file-acceptance'){
+            console.log('accepting file ', data);
+            if(data.data){
+                changeStatus('receiving');
+            } else {
+                changeStatus('idle');
+            }
             dataChannel.send(JSON.stringify(data));
         }
         else {
