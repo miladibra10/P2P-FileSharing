@@ -1,7 +1,6 @@
 import {databaseRef} from "./firebase";
 import {store} from "../store";
-import {setUserStatus, setFileInfo, setReceived, setSent, setDownloadLink} from '../actions/webrtc';
-import {encode, decode} from "base64-arraybuffer"
+import {setUserStatus, setFileInfo, setReceived, setSent, setDownloadLink, setReceivedFiles} from '../actions/webrtc';
 
 function getStatus(){
     return store.getState().webrtc.status;
@@ -12,9 +11,16 @@ function getFileInfo() {
 function getFile() {
     return store.getState().webrtc.file;
 }
+function getReceivedFiles() {
+    return store.getState().webrtc.receivedFiles;
+}
 
 function setSentOffset(offset) {
     store.dispatch(setSent(offset))
+}
+
+function setFilesReceived(receivedFiles, fileInfo) {
+    store.dispatch(setReceivedFiles(receivedFiles, fileInfo))
 }
 
 function setReceivedOffset(offset) {
@@ -136,6 +142,7 @@ function initialize() {
                 setLink(URL.createObjectURL(receivedFile))
                 changeStatus('idle');
                 setReceivedOffset(0);
+                setFilesReceived(getReceivedFiles(),getFileInfo())
                 receivedSize=0;
                 console.log('finished receiving file', URL.createObjectURL(receivedFile))
             }

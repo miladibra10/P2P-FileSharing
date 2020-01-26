@@ -20,7 +20,7 @@ const {Search} = Input;
 const {Dragger} = Upload;
 
 
-const Home = ({status, fileInfo, dispatch,sent, received}) => {
+const Home = ({status, fileInfo, dispatch,sent, received, receivedFiles}) => {
     const [storedUser, setStoredUser] = useState(null);
     const [storedUserSpec, setStoredUserSpec] = useState(null);
     const [storedUserRoomRef, setStoredUserRoomRef] = useState(null);
@@ -249,7 +249,34 @@ const Home = ({status, fileInfo, dispatch,sent, received}) => {
         const offerRef = databaseRef.child(`/offers/${peer["username"]}/${enteredUsername}`)
         createOffer(offerRef);
     };
+    const ListReceived = () => {
+        let list= []
+        console.log("received files in ListReceived",receivedFiles)
+        for (let i = 0;i < receivedFiles.length;i ++){
+            list.push(<Col>
+                {receivedFiles[i].type === "image/png" &&
+                <Icon
+                    type={"file-image"}/>
+                }
+                {receivedFiles[i].type === "text/plain" &&
+                <Icon
+                    type={"file-text"}/>
+                }
 
+                {receivedFiles[i].type === "application/pdf" &&
+                <Icon
+                    type={"file-pdf"}/>
+                }
+
+                {receivedFiles[i].name}
+
+
+            </Col>)
+        }
+
+        return list
+
+    }
     return (
         <div style={{display: 'flex', justifyContent: 'center'}}>
             <Col lg={12} md={16} xs={20} span={7} style={{marginTop: "4rem"}}>
@@ -334,19 +361,22 @@ const Home = ({status, fileInfo, dispatch,sent, received}) => {
                 )}
                 <Row>
                     <Col style={{marginTop:"2em",display:"flex",justifyContent:"center"}} span={12} offset={6}>
+                        {(received/fileInfo.size >= 100) && message.success("file received") }
+                        {(sent/fileInfo.size >= 100) && message.success("file sent") }
                         {((status === "sending") ) && <Progress type="circle" percent={(sent/fileInfo.size) * 100} /> }
                         {(((status === "receiving") )) && <Progress type="circle" percent={(received/fileInfo.size) * 100} /> }
                     </Col>
                 </Row>
+                <Row>
+                    {
+                        receivedFiles !== {} && <ListReceived />
+                    }
+                    {console.log("RECEIVED FILE",receivedFiles)}
+                </Row>
             </Col>
 
-            <Button
-                onClick={() => {
-                    sendMessage('hello from the other side');
-                }}
-            >
-                Send Some Shit
-            </Button>
+
+
         </div>
     )
 };
@@ -356,7 +386,8 @@ const mapStateToProps = state => {
         status: state.webrtc.status,
         fileInfo: state.webrtc.fileInfo,
         received: state.webrtc.received,
-        sent: state.webrtc.sent
+        sent: state.webrtc.sent,
+        receivedFiles: state.webrtc.receivedFiles
     }
 }
 export default connect(mapStateToProps)(Home)

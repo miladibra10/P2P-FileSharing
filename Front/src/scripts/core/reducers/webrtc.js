@@ -12,6 +12,7 @@ const initialState = {
     received: 0,
     sent: 0,
     file: null,
+    receivedFiles: []
 }
 
 export default (state=initialState, action) => {
@@ -39,6 +40,10 @@ export default (state=initialState, action) => {
         case ActionTypes.SET_FILE:
             return immutable(state, {
                 file: {$set: action.payload.file}
+            });
+        case ActionTypes.SET_RECEIVED_FILES:
+            return immutable(state, {
+                receivedFiles: {$set: action.payload.files}
             });
         default : return state
     }
