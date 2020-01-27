@@ -235,41 +235,8 @@ export function sendMessage(data) {
         else {
             console.log('no type found', data);
             console.log('send data', data);
-            // console.log(encode(data));
             dataChannel.send(data);
         }
-        // if (data instanceof ArrayBuffer){
-        //     console.log('sending file', data);
-        //     console.log('array buffer', data);
-        //     console.log('ready state', dataChannel.readyState)
-        //     dataChannel.binaryType = "arraybuffer";
-        //     console.log(encode(data))
-        //     dataChannel.send(encode(data));
-        // }
-        // else if(data.type === 'file-info'){
-        //     console.log('sending file info', data)
-        //     changeStatus('file-info-sent');
-        //     dataChannel.send(JSON.stringify(data));
-        // }
-        // else if(data.type === 'file-acceptance'){
-        //     console.log('accepting file ', data);
-        //     if(data.data){
-        //         changeStatus('receiving');
-        //     } else {
-        //         changeStatus('idle');
-        //     }
-        //     dataChannel.send(JSON.stringify(data));
-        // }
-        // else if(data.type === 'file'){
-        //     console.log('sending file', data.data);
-        //     dataChannel.send(data.data);
-        // } else if (data.type === 'load'){
-        //     console.log("SEND ARRAY BUFFER", data.target);
-        //     dataChannel.send(data.target.result);
-        // }
-        // else {
-        //     console.log('lllllllllllllllllllllllllllllll')
-        // }
     }
 }
 

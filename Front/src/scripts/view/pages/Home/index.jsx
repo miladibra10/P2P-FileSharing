@@ -57,18 +57,6 @@ const Home = ({status, fileInfo, dispatch,sent, received, receivedFiles}) => {
             setFileToStore(file);
             sendMessage(fileInfo);
         },
-        // onChange(info) {
-        //     const {status} = info.file;
-        //     console.log(info)
-        //     // if (status !== 'uploading') {
-        //     //     console.log(info.file, info.fileList);
-        //     // }
-        //     // if (status === 'done') {
-        //     //     message.success(`${info.file.name} file uploaded successfully.`);
-        //     // } else if (status === 'error') {
-        //     //     message.error(`${info.file.name} file upload failed.`);
-        //     // }
-        // },
     };
 
     useEffect(() => {
@@ -164,6 +152,8 @@ const Home = ({status, fileInfo, dispatch,sent, received, receivedFiles}) => {
             console.log("offer from: ", data.key)
             const answerRef = databaseRef.child(`/answers/${data.key}/${enteredUsername}`)
             handleOffer(data.val().offer, answerRef)
+            databaseRef.child(`/offers/${enteredUsername}`).off()
+            databaseRef.child(`/offers/${enteredUsername}`).remove()
         })
     }
     const onAnswerRecieved = () => {
@@ -172,6 +162,8 @@ const Home = ({status, fileInfo, dispatch,sent, received, receivedFiles}) => {
             console.log("new answer received:", data.val())
             console.log("answer from", data.key)
             handleAnswer(data.val().answer, data.key)
+            databaseRef.child(`/answers/${enteredUsername}`).off()
+            databaseRef.child(`/answers/${enteredUsername}`).remove()
         })
     }
     const onCandidateRecieve = () => {
@@ -180,7 +172,10 @@ const Home = ({status, fileInfo, dispatch,sent, received, receivedFiles}) => {
             console.log("new candidate received:", data.val())
             console.log("candidate from", data.key)
             handleCandidate(data.val())
+            databaseRef.child(`/candidates/${enteredUsername}`).off()
+            databaseRef.child(`/candidates/${enteredUsername}`).remove()
         })
+
     }
     const searchFun = (value) => {
         const roomRef = databaseRef.child(`/rooms/${value}`);
